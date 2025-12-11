@@ -24,5 +24,11 @@ mongoose.connect(process.env.MONGO_URI)
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
 
+
+app.get('/', (req, res) => {
+  res.json({ status: "Backend Live" });
+});
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
