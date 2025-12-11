@@ -9,11 +9,13 @@ const app = express();
 app.use(express.json());
 app.use(cors({
   origin: [
-    'http://localhost:5173',                  // Local Vite
-    'http://localhost:3000',                  // Local React
-    'https://dp-gold-start-frontend.vercel.app' // 👈 ADD YOUR LIVE FRONTEND URL HERE
+    'http://localhost:5173',                    // Local Vite
+    'http://localhost:3000',                    // Local React (Backup)
+    'https://dp-gold-start-frontend.vercel.app' // 👈 THIS FIXES THE ERROR
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-auth-token']
 }));
 
 // FIXED: Remove deprecated options
