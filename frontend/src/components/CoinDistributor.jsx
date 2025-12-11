@@ -26,7 +26,7 @@ const CoinDistributor = () => {
     setFetching(true);
     try {
       const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
-      const res = await axios.get('http://localhost:5000/api/admin/players', config);
+      const res = await axios.get('https://dp-gold-backend.onrender.com/api/admin/players', config);
       // The backend now returns 'coins' directly in the player object
       setPlayers(res.data.data || []);
     } catch (err) {
@@ -75,7 +75,7 @@ const CoinDistributor = () => {
       // Send updates for all selected players
       const promises = selectedPlayers.map(playerId =>
         axios.post(
-          'http://localhost:5000/api/admin/update-coins',
+          'https://dp-gold-backend.onrender.com/api/admin/update-coins',
           { playerId, coins: Number(coinAmount) },
           config
         )

@@ -30,7 +30,7 @@ const AddPlayer = () => {
       };
 
       const res = await axios.post(
-        'http://localhost:5000/api/admin/add-player',
+        'https://dp-gold-backend.onrender.com/api/admin/add-player',
         { fullName, username, password, status },
         config
       );

@@ -8,7 +8,11 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5000', 'http://localhost:5173'], // add your frontend URLs
+  origin: [
+    'http://localhost:5173',                  // Local Vite
+    'http://localhost:3000',                  // Local React
+    'https://dp-gold-start-frontend.vercel.app' // 👈 ADD YOUR LIVE FRONTEND URL HERE
+  ],
   credentials: true
 }));
 

@@ -22,7 +22,7 @@ const SpinControl = () => {
   const fetchCurrentNumber = async () => {
     try {
       const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
-      const res = await axios.get('http://localhost:5000/api/admin/public/target', config);
+      const res = await axios.get('https://dp-gold-backend.onrender.com/api/admin/public/target', config);
       setCurrentNumber(res.data.target_number);
       setSelectedNumber(res.data.target_number);
     } catch (err) {
@@ -36,7 +36,7 @@ const SpinControl = () => {
 
     try {
       const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
-      await axios.post('http://localhost:5000/api/admin/set-target', { number: selectedNumber }, config);
+      await axios.post('https://dp-gold-backend.onrender.com/api/admin/set-target', { number: selectedNumber }, config);
       setCurrentNumber(selectedNumber);
       setMessage('Target number updated successfully!');
     } catch (err) {
