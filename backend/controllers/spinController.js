@@ -66,16 +66,41 @@ exports.getTargetNumber = async (req, res) => {
   try {
     // Find the most recent one by sorting descending
     const latest = await TargetNumber.findOne().sort({ createdAt: -1 });
-
-    let finalNumber = 0;
+    
+    // Default to Random (-1) if nothing exists
+    let currentDbValue = latest ? latest.number : -1;
+    let numberToSend = 0;
 
     // 👈 NEW LOGIC: If set to -1, generate random
-    if (latest && latest.number === -1) {
-      finalNumber = Math.floor(Math.random() * 10); // Random 0-9
-      // Optional: Log that a random number was generated? 
-      // For now, just return it so Unity spins freely.
+   if (currentDbValue !== -1) {
+      // -----------------------------------------------------
+      // CASE A: Admin set a specific number (e.g., 5)
+      // -----------------------------------------------------
+      numberToSend = currentDbValue;
+
+      // Create a NEW record for the reset (don't overwrite the 5!)
+      // This ensures '5' stays in your history.
+      const resetEntry = new TargetNumber({ number: -1 });
+      await resetEntry.save();
+      
+      console.log(`[Target] Consumed Admin Target: ${numberToSend}. Reset to Random.`);
+
     } else {
-      finalNumber = latest ? latest.number : 0;
+      // -----------------------------------------------------
+      // CASE B: Random Mode (Current is -1)
+      // -----------------------------------------------------
+      numberToSend = Math.floor(Math.random() * 10); // Generate 0-9
+
+      // 1. Save this random number to DB (So it shows in History)
+      const randomHistory = new TargetNumber({ number: numberToSend });
+      await randomHistory.save();
+
+      // 2. Immediately save a -1 on top of it
+      // This ensures the NEXT spin will generate a new random number
+      const resetEntry = new TargetNumber({ number: -1 });
+      await resetEntry.save();
+
+      console.log(`[Target] Auto-Generated Random: ${numberToSend}. Saved to History.`);
     }
     
     res.json({ 
