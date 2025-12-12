@@ -40,23 +40,20 @@ exports.getSpinSettings = async (req, res) => {
 exports.setTargetNumber = async (req, res) => {
   const { number } = req.body;
   
-  // Validation: Must be 0-9
-  if (number === undefined || number < 0 || number > 9) {
-    return res.status(400).json({ success: false, message: 'Number must be between 0 and 9' });
+ // 👈 CHANGED: Allow -1
+  if (number === undefined || number < -1 || number > 9) {
+    return res.status(400).json({ success: false, message: 'Number must be between -1 and 9' });
   }
 
   try {
-    // Use the helper we defined in the Model
-    let target = await TargetNumber.findOne();
-    if (!target) target = new TargetNumber({ number: 0 });
-    
-    target.number = number;
-    await target.save();
+    // CREATE new document to keep history
+    const newTarget = new TargetNumber({ number });
+    await newTarget.save();
 
     res.json({ 
       success: true, 
-      message: `Target number set to ${number}`, 
-      data: { target_number: target.number } 
+      message: `Target set to ${number}`, 
+      data: { target_number: newTarget.number } 
     });
   } catch (err) {
     console.error("Set Target Error:", err);
@@ -67,17 +64,40 @@ exports.setTargetNumber = async (req, res) => {
 // Get Target Number (Public for Unity)
 exports.getTargetNumber = async (req, res) => {
   try {
-    // We use the static method to ensure only one record exists
-    const target = await TargetNumber.getCurrent(); 
+    // Find the most recent one by sorting descending
+    const latest = await TargetNumber.findOne().sort({ createdAt: -1 });
+
+    let finalNumber = 0;
+
+    // 👈 NEW LOGIC: If set to -1, generate random
+    if (latest && latest.number === -1) {
+      finalNumber = Math.floor(Math.random() * 10); // Random 0-9
+      // Optional: Log that a random number was generated? 
+      // For now, just return it so Unity spins freely.
+    } else {
+      finalNumber = latest ? latest.number : 0;
+    }
     
-    // IMPORTANT: Return exact JSON format Unity expects: {"target_number": 5}
     res.json({ 
       success: true, 
-      target_number: target.number 
+      target_number: latest ? latest.number : 0 
     });
   } catch (err) {
     console.error("Get Target Error:", err);
-    // Fallback for Unity so game doesn't crash
     res.json({ target_number: 0 }); 
+  }
+};
+
+
+// 3. NEW: Get History (Last 10 records)
+exports.getTargetHistory = async (req, res) => {
+  try {
+    const history = await TargetNumber.find()
+      .sort({ createdAt: -1 }) // Newest first
+      .limit(10);              // Only last 10
+      
+    res.json({ success: true, data: history });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

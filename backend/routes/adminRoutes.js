@@ -7,8 +7,13 @@ const auth = require('../middleware/auth');
 const { registerAdmin, loginAdmin } = require('../controllers/adminController');
 const { addPlayer, getAllPlayers } = require('../controllers/playerController');
 const { updateCoins, getPlayer } = require('../controllers/coinController');
-const { setSpinSettings, getSpinSettings } = require('../controllers/spinController');
-const { setTargetNumber, getTargetNumber } = require('../controllers/spinController');
+const { 
+  setSpinSettings, 
+  getSpinSettings, 
+  setTargetNumber, 
+  getTargetNumber, 
+  getTargetHistory 
+} = require('../controllers/spinController');
 
 // THIS WRAPPER FIXES "next is not a function" FOREVER
 const asyncHandler = (fn) => (req, res, next) => {
@@ -35,5 +40,6 @@ router.post('/set-target', auth, asyncHandler(setTargetNumber));
 
 // Public API for Unity (no auth needed)
 router.get('/public/target', asyncHandler(getTargetNumber));
+router.get('/target-history', auth, asyncHandler(getTargetHistory));
 
 module.exports = router;
