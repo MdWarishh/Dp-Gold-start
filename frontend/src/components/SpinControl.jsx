@@ -13,8 +13,8 @@ const SpinControl = () => {
   const navigate = useNavigate();
 
   // Switch to your API
-  const API_BASE = 'http://localhost:5000'; 
-  // const API_BASE = 'https://dp-gold-backend.onrender.com';
+//   const API_BASE = 'http://localhost:5000'; 
+  const API_BASE = 'https://dp-gold-backend.onrender.com';
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
