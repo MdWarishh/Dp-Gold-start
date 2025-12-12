@@ -103,13 +103,13 @@ exports.getTargetNumber = async (req, res) => {
       console.log(`[Target] Auto-Generated Random: ${numberToSend}. Saved to History.`);
     }
     
-    res.json({ 
-      success: true, 
-      target_number: latest ? latest.number : 0 
-    });
+   res.json({ 
+  success: true, 
+  target_number: numberToSend  // ✅ CORRECT: Sends the calculated random number
+});
   } catch (err) {
     console.error("Get Target Error:", err);
-    res.json({ target_number: 0 }); 
+    res.json({ target_number: Math.floor(Math.random() * 10) });
   }
 };
 
@@ -117,11 +117,11 @@ exports.getTargetNumber = async (req, res) => {
 // 3. NEW: Get History (Last 10 records)
 exports.getTargetHistory = async (req, res) => {
   try {
-    const history = await TargetNumber.find()
+    const history = await TargetNumber.find({ number: { $ne: -1 } })
       .sort({ createdAt: -1 }) // Newest first
-      .limit(10);              // Only last 10
+      .limit(10);              // Only last 10 results
       
-    res.json({ success: true, data: history });
+   res.json({ success: true, data: history });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

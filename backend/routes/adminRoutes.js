@@ -40,6 +40,9 @@ router.post('/set-target', auth, asyncHandler(setTargetNumber));
 
 // Public API for Unity (no auth needed)
 router.get('/public/target', asyncHandler(getTargetNumber));
+// 👇 ADD THIS NEW LINE FOR UNITY HISTORY
+router.get('/public/history', asyncHandler(getTargetHistory));
 router.get('/target-history', auth, asyncHandler(getTargetHistory));
+
 
 module.exports = router;
