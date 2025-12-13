@@ -19,6 +19,9 @@ const AddPlayer = () => {
 
   // Define API URL (Live)
   const API_BASE = 'https://dp-gold-backend.onrender.com';
+// const API_BASE = 'http://localhost:5000';
+
+
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -63,7 +66,7 @@ const AddPlayer = () => {
     }
   };
 
-  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

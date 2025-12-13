@@ -33,8 +33,6 @@ router.post('/update-player-status', auth, asyncHandler(updatePlayerStatus));
 
 
 
-// 👇 PLAYER LOGIN ROUTE (Public)
-router.post('/login', asyncHandler(loginPlayer));
 
 router.post('/update-coins', auth, asyncHandler(updateCoins));
 router.post('/spin-control', auth, asyncHandler(setSpinSettings));

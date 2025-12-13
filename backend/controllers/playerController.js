@@ -136,28 +136,44 @@ exports.loginPlayer = async (req, res) => {
 
 // controllers/playerController.js
 // ... existing imports and functions ...
-
-// 👇 ADD THIS NEW FUNCTION
 exports.updatePlayerStatus = async (req, res) => {
-  const { playerId, status } = req.body;
-
-  if (!playerId || !status) {
-    return res.status(400).json({ success: false, message: 'Missing ID or Status' });
-  }
-
   try {
-    const player = await Player.findById(playerId);
-    if (!player) {
-      return res.status(404).json({ success: false, message: 'Player not found' });
+    // 1. Extract 'playerId' (Must match what frontend sends)
+    const { playerId, status } = req.body;
+
+    if (!playerId || !status) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Player ID and Status are required" 
+      });
     }
 
-    player.status = status;
-    await player.save();
+    // 2. Find and update
+    const updatedPlayer = await Player.findByIdAndUpdate(
+      playerId, 
+      { status: status },
+      { new: true } // Return the updated document
+    );
 
-    res.json({ success: true, message: `Player marked as ${status}` });
+    if (!updatedPlayer) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Player not found" 
+      });
+    }
 
-  } catch (err) {
-    console.error("Update Status Error:", err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.json({
+      success: true,
+      message: `Status updated to ${status}`,
+      data: updatedPlayer
+    });
+
+  } catch (error) {
+    console.error("Update Status Error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server Error", 
+      error: error.message 
+    });
   }
 };
