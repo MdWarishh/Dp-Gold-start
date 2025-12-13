@@ -1,6 +1,78 @@
 const SpinSettings = require('../models/SpinSettings');
 const TargetNumber = require('../models/TargetNumber'); // <--- THIS WAS MISSING!
 
+
+
+// ⏱️ GLOBAL MASTER CLOCK (In Memory)
+// Initialize the first round to end 60 seconds from server start
+let nextSpinTime = Date.now() + 60000;
+
+// 👇 NEW: Helper function to executing the Spin (Generate Result)
+const executeSpinLogic = async () => {
+  try {
+    // 1. Check what the current target is (set by Admin or -1)
+    const latest = await TargetNumber.findOne().sort({ createdAt: -1 });
+    let currentDbValue = latest ? latest.number : -1;
+    let finalResult = 0;
+
+    if (currentDbValue !== -1) {
+      // CASE A: Admin set a number (e.g., 5)
+      // The number '5' is already in DB, so that is our result.
+      finalResult = currentDbValue;
+      console.log(`[Spin] Admin Target Processed: ${finalResult}`);
+    } else {
+      // CASE B: Random Mode (-1)
+      // We need to generating a random number and SAVE it as history
+      finalResult = Math.floor(Math.random() * 10);
+      
+      const randomEntry = new TargetNumber({ number: finalResult });
+      await randomEntry.save();
+      console.log(`[Spin] Random Number Generated: ${finalResult}`);
+    }
+
+    // 2. IMPORTANT: RESET FOR NEXT ROUND
+    // Always add a -1 on top so the next round starts fresh
+    const resetEntry = new TargetNumber({ number: -1 });
+    await resetEntry.save();
+
+  } catch (err) {
+    console.error("Execute Spin Error:", err);
+  }
+};
+
+// 1. Get Game Status (Called by Admin & Unity)
+exports.getGameStatus = async (req, res) => {
+  try {
+    const currentTime = Date.now();
+
+    // 👇 THIS IS THE FIX:
+    // If time is up, we don't just reset the timer...
+    // WE ALSO EXECUTE THE SPIN!
+    if (currentTime >= nextSpinTime) {
+      
+      // A. Run the spin logic (Save to DB)
+      await executeSpinLogic();
+
+      // B. Reset Timer for next 60 seconds
+      nextSpinTime = currentTime + 60000;
+    }
+
+    const timeLeft = Math.floor((nextSpinTime - currentTime) / 1000);
+
+    res.json({
+      success: true,
+      nextSpinTime: nextSpinTime,
+      timeLeft: timeLeft > 0 ? timeLeft : 0
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+
 // Set Spin Settings (update or create general settings)
 exports.setSpinSettings = async (req, res) => {
   const { multiplier, probability, rewardType, winningNumber } = req.body;

@@ -12,7 +12,8 @@ const {
   getSpinSettings, 
   setTargetNumber, 
   getTargetNumber, 
-  getTargetHistory 
+  getTargetHistory, 
+  getGameStatus
 } = require('../controllers/spinController');
 
 // THIS WRAPPER FIXES "next is not a function" FOREVER
@@ -38,10 +39,15 @@ router.post('/update-coins', auth, asyncHandler(updateCoins));
 router.post('/spin-control', auth, asyncHandler(setSpinSettings));
 router.get('/get-spin-settings', auth, asyncHandler(getSpinSettings));
 router.get('/get-player/:playerId', auth, asyncHandler(getPlayer));
+router.post('/player/login', asyncHandler(loginPlayer));
 
 
 // Admin sets the number (0–9)
 router.post('/set-target', auth, asyncHandler(setTargetNumber));
+
+
+// 👇 NEW: TIMER ROUTE (Public, so Unity can access it too if needed)
+router.get('/game-status', asyncHandler(getGameStatus));
 
 // Public API for Unity (no auth needed)
 router.get('/public/target', asyncHandler(getTargetNumber));
