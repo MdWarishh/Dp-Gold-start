@@ -84,3 +84,52 @@ exports.getAllPlayers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+
+
+
+
+
+// 👇 ADD THIS NEW FUNCTION FOR GAME LOGIN
+exports.loginPlayer = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide username and password' });
+  }
+
+  try {
+    // 1. Find the player
+    const player = await Player.findOne({ username });
+    if (!player) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // 2. Check Password (using bcrypt to compare with hash)
+    const isMatch = await bcrypt.compare(password, player.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Invalid password' });
+    }
+
+    // 3. Check if account is Active
+    if (player.status !== 'active') {
+      return res.status(403).json({ success: false, message: 'Your account is inactive. Contact Admin.' });
+    }
+
+    // 4. Success - Return player details
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        id: player._id,
+        fullName: player.fullName,
+        username: player.username,
+        sNo: player.sNo
+      }
+    });
+
+  } catch (err) {
+    console.error("Login Error:", err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};

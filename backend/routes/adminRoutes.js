@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 
 // Import only the functions
 const { registerAdmin, loginAdmin } = require('../controllers/adminController');
-const { addPlayer, getAllPlayers } = require('../controllers/playerController');
+const { addPlayer, getAllPlayers, loginPlayer } = require('../controllers/playerController');
 const { updateCoins, getPlayer } = require('../controllers/coinController');
 const { 
   setSpinSettings, 
@@ -28,6 +28,8 @@ router.post('/login', asyncHandler(loginAdmin));
 router.post('/add-player', auth, asyncHandler(addPlayer));
 // 👇 ADD THIS NEW ROUTE HERE
 router.get('/players', auth, asyncHandler(getAllPlayers));
+// 👇 PLAYER LOGIN ROUTE (Public)
+router.post('/login', asyncHandler(loginPlayer));
 
 router.post('/update-coins', auth, asyncHandler(updateCoins));
 router.post('/spin-control', auth, asyncHandler(setSpinSettings));

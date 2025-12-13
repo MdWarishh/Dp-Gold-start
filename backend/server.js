@@ -6,6 +6,14 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
+
+
+
+// Routes
+const adminRoutes = require('./routes/adminRoutes');
+const gameRoutes = require('./routes/adminRoutes'); // 👈 Import new routes
+
+
 app.use(express.json());
 app.use(cors({
   origin: [
@@ -26,10 +34,9 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-// Routes
-const adminRoutes = require('./routes/adminRoutes');
-app.use('/api/admin', adminRoutes);
 
+app.use('/api/admin', adminRoutes);
+app.use('/api/player', gameRoutes);
 
 app.get('/', (req, res) => {
   res.json({ status: "Backend Live" });
