@@ -133,3 +133,31 @@ exports.loginPlayer = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// controllers/playerController.js
+// ... existing imports and functions ...
+
+// 👇 ADD THIS NEW FUNCTION
+exports.updatePlayerStatus = async (req, res) => {
+  const { playerId, status } = req.body;
+
+  if (!playerId || !status) {
+    return res.status(400).json({ success: false, message: 'Missing ID or Status' });
+  }
+
+  try {
+    const player = await Player.findById(playerId);
+    if (!player) {
+      return res.status(404).json({ success: false, message: 'Player not found' });
+    }
+
+    player.status = status;
+    await player.save();
+
+    res.json({ success: true, message: `Player marked as ${status}` });
+
+  } catch (err) {
+    console.error("Update Status Error:", err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
