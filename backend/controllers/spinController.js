@@ -41,25 +41,20 @@ const executeSpinLogic = async () => {
 };
 
 // 1. Get Game Status (Called by Admin & Unity)
-// controllers/spinController.js
-
-// ... (keep previous code)
-
-// 1. Get Game Status (Called by Admin & Unity)
 exports.getGameStatus = async (req, res) => {
   try {
     const currentTime = Date.now();
 
-    // 👇 THE FIX: Check time
+    // 👇 THIS IS THE FIX:
+    // If time is up, we don't just reset the timer...
+    // WE ALSO EXECUTE THE SPIN!
     if (currentTime >= nextSpinTime) {
       
-      // 1. IMMEDIATELY update the timer first! 
-      // This prevents Unity and Admin from triggering it at the same time.
-      nextSpinTime = currentTime + 60000;
+      // A. Run the spin logic (Save to DB)
+      await executeSpinLogic();
 
-      // 2. THEN run the logic in the background
-      // (We don't await this because we want to return the response fast)
-      executeSpinLogic(); 
+      // B. Reset Timer for next 60 seconds
+      nextSpinTime = currentTime + 60000;
     }
 
     const timeLeft = Math.floor((nextSpinTime - currentTime) / 1000);
@@ -74,6 +69,7 @@ exports.getGameStatus = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 
 
