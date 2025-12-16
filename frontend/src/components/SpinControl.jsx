@@ -63,38 +63,83 @@ const API_BASE = window.location.hostname === 'localhost'
     };
   }, [nextSpinTimestamp]);
 
+  // const fetchGameTimer = async () => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE}/api/admin/game-status`);
+  //     if (res.data.success) {
+  //       setNextSpinTimestamp(res.data.nextSpinTime);
+  //       setTimeLeft(res.data.timeLeft);
+  //     }
+  //   } catch (err) {
+  //     console.error("Timer Sync Error", err);
+  //   }
+  // };
+
+
+
   const fetchGameTimer = async () => {
     try {
       const res = await axios.get(`${API_BASE}/api/admin/game-status`);
       if (res.data.success) {
         setNextSpinTimestamp(res.data.nextSpinTime);
         setTimeLeft(res.data.timeLeft);
+        
+        // 👇 NEW: Update the UI "Locked" state based on pending target
+        // If nextTarget is -1, it means Auto Random. If 0-9, it means Locked.
+        setCurrentNumber(res.data.currentStatus); 
+        if (res.data.currentStatus !== -1) {
+            setSelectedNumber(res.data.currentStatus);
+        } else {
+            setSelectedNumber(null);
+        }
       }
     } catch (err) {
       console.error("Timer Sync Error", err);
     }
   };
 
+
+
+
+  // const fetchData = async () => {
+  //   try {
+  //     const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
+  //     const resHistory = await axios.get(`${API_BASE}/api/admin/target-history`, config);
+      
+  //     if (resHistory.data.data.length > 0) {
+  //       const latestSetting = resHistory.data.data[0].number;
+  //       setCurrentNumber(latestSetting);
+        
+  //       if (latestSetting !== -1) {
+  //         setSelectedNumber(latestSetting);
+  //       } else {
+  //         setSelectedNumber(null);
+  //       }
+  //       setHistory(resHistory.data.data);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+
+
+
+  // UPDATE fetchData to ONLY fetch history (don't set currentNumber here anymore)
   const fetchData = async () => {
     try {
       const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
       const resHistory = await axios.get(`${API_BASE}/api/admin/target-history`, config);
       
       if (resHistory.data.data.length > 0) {
-        const latestSetting = resHistory.data.data[0].number;
-        setCurrentNumber(latestSetting);
-        
-        if (latestSetting !== -1) {
-          setSelectedNumber(latestSetting);
-        } else {
-          setSelectedNumber(null);
-        }
         setHistory(resHistory.data.data);
       }
     } catch (err) {
       console.error(err);
     }
   };
+
+
+
 
   const handleNumberClick = (num) => {
     setSelectedNumber(num);
@@ -125,6 +170,13 @@ const API_BASE = window.location.hostname === 'localhost'
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
   };
+
+
+
+  // Add this line inside SpinControl component, before the return()
+const lastWinningNumber = history.length > 0 ? history[0].number : '-';
+
+
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -163,24 +215,30 @@ const API_BASE = window.location.hostname === 'localhost'
 
             {/* Spin Control Panel */}
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <div className="text-center mb-8">
-                <p className="text-xl text-gray-500 mb-2">Current System State</p>
-                {currentNumber === -1 ? (
-                  <div className="flex flex-col items-center justify-center h-32">
-                     <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600 animate-pulse">
-                       AUTO RANDOM 🎲
-                     </span>
-                     <p className="text-gray-400 text-sm mt-2">System generating random numbers automatically</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <div className="text-8xl font-black text-indigo-600 drop-shadow-lg">
-                      {currentNumber !== null ? currentNumber : "-"}
-                    </div>
-                    <p className="text-indigo-600 font-bold mt-2">LOCKED FOR NEXT SPIN</p>
-                  </div>
-                )}
-              </div>
+              {/* REPLACE THIS SECTION IN SpinControl.jsx */}
+
+<div className="text-center mb-8">
+  <p className="text-xl text-gray-500 mb-2">Current System State</p>
+  
+  {currentNumber === -1 ? (
+    /* CASE 1: AUTO MODE (Show Last Result) */
+    <div className="flex flex-col items-center justify-center h-32">
+       {/* Shows the last winning number instead of "AUTO RANDOM" text */}
+       <div className="text-8xl font-black text-gray-700 drop-shadow-lg">
+         {lastWinningNumber}
+       </div>
+       <p className="text-gray-400 font-bold mt-2">LAST WINNING NUMBER (AUTO)</p>
+    </div>
+  ) : (
+    /* CASE 2: TARGET LOCKED (Show the number you just set) */
+    <div className="flex flex-col items-center justify-center h-32">
+      <div className="text-8xl font-black text-indigo-600 drop-shadow-lg">
+        {currentNumber}
+      </div>
+      <p className="text-indigo-600 font-bold mt-2">LOCKED FOR NEXT SPIN</p>
+    </div>
+  )}
+</div>
 
               <div className="grid grid-cols-5 gap-3 mb-8">
                 {[0,1,2,3,4,5,6,7,8,9].map(num => (
