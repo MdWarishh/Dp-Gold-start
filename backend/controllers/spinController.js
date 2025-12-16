@@ -372,11 +372,11 @@ exports.getTargetHistory = async (req, res) => {
 
 // Add this at the very bottom of spinController.js
 // This ensures the timer checks every 1 second, even if no one is logged in.
-setInterval(() => {
-    const currentTime = Date.now();
-    if (currentTime >= nextSpinTime) {
-        console.log("⏰ Server Auto-Tick: Time is up, executing spin...");
-        executeSpinLogic();
-        nextSpinTime = currentTime + 60000;
-    }
-}, 1000);
+// setInterval(() => {
+//     const currentTime = Date.now();
+//     if (currentTime >= nextSpinTime) {
+//         console.log("⏰ Server Auto-Tick: Time is up, executing spin...");
+//         executeSpinLogic();
+//         nextSpinTime = currentTime + 60000;
+//     }
+// }, 1000);
