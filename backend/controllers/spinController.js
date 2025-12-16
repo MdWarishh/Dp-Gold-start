@@ -153,7 +153,8 @@ exports.getGameStatus = async (req, res) => {
       nextSpinTime: nextSpinTime,
       timeLeft: timeLeft > 0 ? timeLeft : 0,
       // Tell Admin if a target is currently locked in or if it's auto
-      currentStatus: settings.nextTarget 
+      currentStatus: settings.nextTarget,
+      serverTime: currentTime
     });
 
   } catch (err) {
