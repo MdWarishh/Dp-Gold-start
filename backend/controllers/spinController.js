@@ -6,7 +6,7 @@ const TargetNumber = require('../models/TargetNumber'); // <--- THIS WAS MISSING
 // ⏱️ GLOBAL MASTER CLOCK (In Memory)
 // Initialize the first round to end 60 seconds from server start
 // ⏱️ GLOBAL MASTER CLOCK (In Memory)
-let nextSpinTime = Date.now() + 60000;
+let nextSpinTime = Date.now() + 64000;
 let isSpinning = false; // Prevents double-execution
 
 
@@ -142,7 +142,7 @@ exports.getGameStatus = async (req, res) => {
     if (currentTime >= nextSpinTime) {
       await executeSpinLogic();
       // Reset Timer for next 60 seconds
-      nextSpinTime = currentTime + 60000;
+      nextSpinTime = currentTime + 64000;
     }
 
     const timeLeft = Math.floor((nextSpinTime - currentTime) / 1000);
@@ -151,7 +151,7 @@ exports.getGameStatus = async (req, res) => {
     res.json({
       success: true,
       nextSpinTime: nextSpinTime,
-      timeLeft: timeLeft > 0 ? timeLeft : 0,
+     timeLeft: timeLeft > 60 ? 60 : (timeLeft > 0 ? timeLeft : 0),
       // Tell Admin if a target is currently locked in or if it's auto
       currentStatus: settings.nextTarget,
       serverTime: currentTime
