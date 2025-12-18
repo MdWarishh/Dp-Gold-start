@@ -130,7 +130,11 @@ exports.setTargetNumber = async (req, res) => {
 // 3. GET TARGET FOR UNITY (Read-Only)
 exports.getTargetNumber = async (req, res) => {
   try {
-    // 👇 FIX: Unity just reads the latest HISTORY. No logic here.
+    // 1. Force a 2-second delay (Sleep)
+    // This allows the "Server Loop" to finish writing the new number to DB
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 2. NOW fetch the latest number
     const latest = await TargetNumber.findOne().sort({ createdAt: -1 });
     
     // If no history exists, default to 0
@@ -144,6 +148,8 @@ exports.getTargetNumber = async (req, res) => {
     res.json({ target_number: 0 });
   }
 };
+
+
 
 // 4. GET HISTORY
 exports.getTargetHistory = async (req, res) => {
