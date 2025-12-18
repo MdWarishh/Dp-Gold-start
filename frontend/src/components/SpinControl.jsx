@@ -1,4 +1,4 @@
-// src/components/SpinControl.jsx
+// SpinControl.jsx (Fixed Version)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -30,8 +30,7 @@ const API_BASE = window.location.hostname === 'localhost'
     }
   }, [navigate]);
 
-  // 👇 NEW: Polling to keep timer synced
- // 👇 UPDATED: Polling to keep timer AND history synced
+  // 👇 UPDATED: Polling to keep timer AND history synced
   useEffect(() => {
     // 1. SYNC INTERVAL: fetching both Timer and Data every 5 seconds
     const syncInterval = setInterval(() => {
@@ -47,7 +46,7 @@ const API_BASE = window.location.hostname === 'localhost'
         setTimeLeft(diff > 0 ? diff : 0);
         
         // Immediate trigger when timer hits 0
-        if (diff === 0) {
+        if (diff <= 0) {
            // We wait 3 seconds to give the server time to process the spin, then fetch
            setTimeout(() => {
              fetchData(); 
@@ -62,20 +61,6 @@ const API_BASE = window.location.hostname === 'localhost'
       clearInterval(countdownInterval);
     };
   }, [nextSpinTimestamp]);
-
-  // const fetchGameTimer = async () => {
-  //   try {
-  //     const res = await axios.get(`${API_BASE}/api/admin/game-status`);
-  //     if (res.data.success) {
-  //       setNextSpinTimestamp(res.data.nextSpinTime);
-  //       setTimeLeft(res.data.timeLeft);
-  //     }
-  //   } catch (err) {
-  //     console.error("Timer Sync Error", err);
-  //   }
-  // };
-
-
 
   const fetchGameTimer = async () => {
     try {
@@ -98,32 +83,6 @@ const API_BASE = window.location.hostname === 'localhost'
     }
   };
 
-
-
-
-  // const fetchData = async () => {
-  //   try {
-  //     const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
-  //     const resHistory = await axios.get(`${API_BASE}/api/admin/target-history`, config);
-      
-  //     if (resHistory.data.data.length > 0) {
-  //       const latestSetting = resHistory.data.data[0].number;
-  //       setCurrentNumber(latestSetting);
-        
-  //       if (latestSetting !== -1) {
-  //         setSelectedNumber(latestSetting);
-  //       } else {
-  //         setSelectedNumber(null);
-  //       }
-  //       setHistory(resHistory.data.data);
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-
-
   // UPDATE fetchData to ONLY fetch history (don't set currentNumber here anymore)
   const fetchData = async () => {
     try {
@@ -137,9 +96,6 @@ const API_BASE = window.location.hostname === 'localhost'
       console.error(err);
     }
   };
-
-
-
 
   const handleNumberClick = (num) => {
     setSelectedNumber(num);
@@ -171,12 +127,12 @@ const API_BASE = window.location.hostname === 'localhost'
     });
   };
 
-
-
   // Add this line inside SpinControl component, before the return()
-const lastWinningNumber = history.length > 0 ? history[0].number : '-';
+  const lastWinningNumber = history.length > 0 ? history[0].number : '-';
 
-
+  // Format timeLeft as mm:ss
+  const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const seconds = (timeLeft % 60).toString().padStart(2, '0');
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -208,7 +164,7 @@ const lastWinningNumber = history.length > 0 ? history[0].number : '-';
               <div className="bg-white px-6 py-3 rounded-xl shadow-md flex items-center gap-3 border border-indigo-100">
                 <span className="text-gray-500 font-semibold uppercase text-sm tracking-wider">Next Spin In</span>
                 <span className={`text-3xl font-mono font-bold ${timeLeft < 10 ? 'text-red-600 animate-pulse' : 'text-indigo-600'}`}>
-                  00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                  {minutes}:{seconds}
                 </span>
               </div>
             </div>
