@@ -1,6 +1,7 @@
 // controllers/playerController.js
 const Player = require('../models/Player');
 const Wallet = require('../models/Wallet');
+const bcrypt = require('bcryptjs'); // <--- ADD THIS LINE
 
 exports.addPlayer = async (req, res) => {
   const { fullName, username, password, status } = req.body;
