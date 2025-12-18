@@ -2,13 +2,11 @@
 const SpinSettings = require('../models/SpinSettings');
 const TargetNumber = require('../models/TargetNumber');
 
-// ⏱️ GLOBAL MASTER CLOCK (In Memory)
-// Initialize the first round to end 60 seconds from server start
-let nextSpinTime = Date.now() + 60000;
-let isSpinning = false; // Prevents double-execution
+// ⏱️ GLOBAL MASTER CLOCK
+let nextSpinTime = Date.now() + 60000;  // First spin in 60s
+let isSpinning = false;
 
-
-// Helper: Ensure settings exist
+// Helper
 const getSettings = async () => {
   let settings = await SpinSettings.findOne();
   if (!settings) {
@@ -18,61 +16,52 @@ const getSettings = async () => {
   return settings;
 };
 
-// 👇 THE CORE LOGIC: DETERMINES THE RESULT
+// Generate and save result
+// Generate and save result (ONLY CALLED BY SERVER LOOP)
 const executeSpinLogic = async () => {
-  if (isSpinning) return; // Safety lock
+  if (isSpinning) return;
   isSpinning = true;
 
   try {
     const settings = await getSettings();
-    let finalResult;
+    // If nextTarget is -1, generate random 0-9. Otherwise use the locked target.
+    let finalResult = settings.nextTarget !== -1 ? settings.nextTarget : Math.floor(Math.random() * 10);
 
-    // 1. Determine Result based on "Pending Target"
-    if (settings.nextTarget !== -1) {
-      // Admin set a specific number
-      finalResult = settings.nextTarget;
-      console.log(`[Spin] Admin Target Used: ${finalResult}`);
-    } else {
-      // Random Mode
-      finalResult = Math.floor(Math.random() * 10);
-      console.log(`[Spin] Random Generated: ${finalResult}`);
-    }
+    console.log(`[Spin] Result: ${finalResult} (${settings.nextTarget !== -1 ? 'Admin Target' : 'Random'})`);
 
-    // 2. Save Result to History (This is what Unity/Admin sees as "Result")
+    // Save the result to history
     const newHistory = new TargetNumber({ number: finalResult });
     await newHistory.save();
 
-    // 3. Reset Pending Target to -1 (Random) for next round
+    // Reset Admin Target back to -1 (Auto Mode)
     settings.nextTarget = -1;
     await settings.save();
 
   } catch (err) {
-    console.error("Execute Spin Error:", err);
+    console.error("Spin Error:", err);
   } finally {
     isSpinning = false;
   }
 };
 
-// 1. GAME STATUS (Called by Admin to tick the clock)
+
+
+// 1. GAME STATUS (Read-Only)
+// ❌ REMOVED: Logic to trigger spin from here. 
+// ✅ ADDED: Purely checks time and returns status.
 exports.getGameStatus = async (req, res) => {
   try {
     const currentTime = Date.now();
-
-    // IF TIME IS UP -> EXECUTE SPIN
-    if (currentTime >= nextSpinTime) {
-      await executeSpinLogic();
-      // Reset Timer for next 60 seconds (fixed interval)
-      nextSpinTime += 60000;
-    }
-
+    
+    // Simple math: Time left is NextSpin - Current
     const timeLeft = Math.max(0, Math.floor((nextSpinTime - currentTime) / 1000));
-    const settings = await getSettings(); // Get current pending status
+    
+    const settings = await getSettings();
 
     res.json({
       success: true,
-      nextSpinTime: nextSpinTime,
-      timeLeft: timeLeft,
-      // Tell Admin if a target is currently locked in or if it's auto
+      nextSpinTime,
+      timeLeft,
       currentStatus: settings.nextTarget,
       serverTime: currentTime
     });
@@ -81,6 +70,7 @@ exports.getGameStatus = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Set Spin Settings (update or create general settings)
 exports.setSpinSettings = async (req, res) => {
@@ -169,13 +159,19 @@ exports.getTargetHistory = async (req, res) => {
   }
 };
 
-// Add this at the very bottom of spinController.js
-// This ensures the timer checks every 1 second, even if no one is logged in.
-setInterval(() => {
-    const currentTime = Date.now();
-    if (currentTime >= nextSpinTime) {
-        console.log("⏰ Server Auto-Tick: Time is up, executing spin...");
-        executeSpinLogic();
-        nextSpinTime += 60000;
-    }
+
+// ⏱️ SERVER INTERVAL (The Only Boss)
+setInterval(async () => {
+  const currentTime = Date.now();
+
+  // If we passed the target time...
+  if (currentTime >= nextSpinTime) {
+    // 1. Move the goal post FIRST to prevent double-execution
+    nextSpinTime += 60000; 
+
+    // 2. Run the logic
+    await executeSpinLogic();
+    
+    console.log(`⏰ Auto-spin executed at ${new Date(currentTime).toISOString()}. Next: ${new Date(nextSpinTime).toISOString()}`);
+  }
 }, 1000);
