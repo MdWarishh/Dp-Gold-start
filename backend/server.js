@@ -16,14 +16,15 @@ const gameRoutes = require('./routes/adminRoutes'); // 👈 Import new routes
 
 app.use(express.json());
 app.use(cors({
-  origin: [
-    'http://localhost:5173',                    // Local Vite
-    'http://localhost:3000',                    // Local React (Backup)
-    'https://dp-gold-start-frontend.vercel.app' // 👈 THIS FIXES THE ERROR
+ origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://dp-gold-start-frontend.vercel.app',
+    'https://dp-gold-start-frontend.vercel.app/'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'x-auth-token']
+  allowedHeaders: ['Content-Type', 'x-auth-token', 'Authorization']
 }));
 
 // FIXED: Remove deprecated options
